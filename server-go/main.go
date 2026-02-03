@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -77,8 +78,14 @@ func main() {
 
 	r.GET("/signal", handleSignaling)
 
-	log.Println("🚀 Iris Server running on :8080")
-	r.Run(":8080")
+	// Get port from environment or use default
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("🚀 Iris Server running on :%s", port)
+	r.Run(":" + port)
 }
 
 func handleSignaling(c *gin.Context) {
