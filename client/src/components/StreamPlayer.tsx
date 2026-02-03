@@ -1,12 +1,11 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Video, VideoOff, Loader2, MessageSquare } from "lucide-react";
 import ChatSidebar from "@/components/ChatSidebar";
+import { useTheme, themes } from "@/contexts/ThemeContext";
 
-const SIGNALING_SERVER = "ws://localhost:8080/signal";
+const SIGNALING_SERVER = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "ws://localhost:8080/signal";
 
 export default function StreamPlayer() {
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -20,6 +19,8 @@ export default function StreamPlayer() {
   const [error, setError] = useState<string | null>(null);
   const [showChat, setShowChat] = useState(true);
   const [streamStartTime, setStreamStartTime] = useState<number | null>(null);
+
+  const { currentColors } = useTheme();
 
   const startStream = async () => {
     try {
@@ -208,15 +209,23 @@ export default function StreamPlayer() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent mb-2">
-            Iris
+          <h1
+            className="text-5xl font-bold mb-2"
+            style={{
+              background: `linear-gradient(to right, ${currentColors.primary}, ${currentColors.secondary})`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text"
+            }}
+          >
+            Create Your Stream
           </h1>
           <p className="text-slate-400 text-lg">
-            Agentic Live-Streaming Engine
+            Start streaming with AI-powered analysis
           </p>
         </div>
 

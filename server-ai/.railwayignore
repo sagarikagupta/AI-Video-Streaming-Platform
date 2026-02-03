@@ -1,0 +1,6 @@
+# Ignore unnecessary files for deployment
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/

@@ -1,0 +1,2 @@
+# Railway will auto-detect the port from your Go code
+# No additional configuration needed for basic deployment
