@@ -63,7 +63,7 @@ export default function ProfilePage() {
 
                 {/* Tabs */}
                 <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700">
-                    <Tabs defaultValue={defaultTab} className="w-full">
+                    <Tabs defaultValue="history" className="w-full">
                         <div className="border-b border-slate-700">
                             <TabsList className="bg-transparent p-0 h-auto">
                                 <TabsTrigger
