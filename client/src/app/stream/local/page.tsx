@@ -31,10 +31,21 @@ export default function LocalStreamPage() {
         ],
     };
 
+    // Attach video stream when it's available
+    useEffect(() => {
+        if (localStreamRef.current && localVideoRef.current && mode === "broadcaster") {
+            localVideoRef.current.srcObject = localStreamRef.current;
+            localVideoRef.current.play().catch(e => console.log("Play error:", e));
+        }
+    }, [mode, localStreamRef.current]);
+
     // Start broadcasting
     const startBroadcast = async () => {
         try {
             setConnectionStatus("connecting");
+
+            // Set mode first so UI updates
+            setMode("broadcaster");
 
             // Get user media
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -43,9 +54,6 @@ export default function LocalStreamPage() {
             });
 
             localStreamRef.current = stream;
-            if (localVideoRef.current) {
-                localVideoRef.current.srcObject = stream;
-            }
 
             // Create peer connection
             const pc = new RTCPeerConnection(iceServers);
@@ -97,10 +105,10 @@ export default function LocalStreamPage() {
             setQrCodeUrl(qrUrl);
 
             setIsStreaming(true);
-            setMode("broadcaster");
         } catch (error) {
             console.error("Error starting broadcast:", error);
             setConnectionStatus("disconnected");
+            setMode(null);
             alert("Failed to start broadcast. Please allow camera/microphone access.");
         }
     };
