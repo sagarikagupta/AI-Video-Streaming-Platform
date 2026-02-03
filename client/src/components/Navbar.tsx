@@ -26,6 +26,7 @@ export default function Navbar() {
     const navItems = [
         { href: "/create", label: "Create", icon: Video },
         { href: "/watch", label: "Watch", icon: Eye },
+        { href: "/stream/local", label: "Local P2P", icon: Video },
     ];
 
     return (
