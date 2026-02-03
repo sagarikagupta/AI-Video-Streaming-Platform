@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme, themes } from "@/contexts/ThemeContext";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -16,8 +16,6 @@ export default function ProfilePage() {
     const { user, isAuthenticated } = useAuth();
     const { currentColors } = useTheme();
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const defaultTab = searchParams.get("tab") || "history";
 
     useEffect(() => {
         if (!isAuthenticated) {
