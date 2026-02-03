@@ -1,6 +1,7 @@
 fastapi
 uvicorn[standard]
-redis
+redis[hiredis]
 python-dotenv
 openai
-pinecone-client
+chromadb
+sentence-transformers

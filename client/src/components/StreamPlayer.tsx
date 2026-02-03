@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Video, VideoOff, Loader2 } from "lucide-react";
+import { Video, VideoOff, Loader2, MessageSquare } from "lucide-react";
+import ChatSidebar from "@/components/ChatSidebar";
 
 const SIGNALING_SERVER = "ws://localhost:8080/signal";
 
@@ -17,6 +18,8 @@ export default function StreamPlayer() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showChat, setShowChat] = useState(true);
+  const [streamStartTime, setStreamStartTime] = useState<number | null>(null);
 
   const startStream = async () => {
     try {
@@ -88,6 +91,7 @@ export default function StreamPlayer() {
       }
       setIsStreaming(true);
       setIsConnecting(false);
+      setStreamStartTime(Date.now());
     };
 
     // Handle ICE candidates
@@ -174,6 +178,27 @@ export default function StreamPlayer() {
     setIsStreaming(false);
     setIsConnecting(false);
     setError(null);
+    setStreamStartTime(null);
+  };
+
+  const handleSeekToTimestamp = (timestamp: number) => {
+    // Note: For live streams, we can't actually seek
+    // This would work with recorded video
+    // For now, we'll just log it
+    console.log(`🎯 Seeking to timestamp: ${timestamp}`);
+
+    if (streamStartTime) {
+      const elapsedSeconds = Math.floor((Date.now() - streamStartTime) / 1000);
+      const targetSeconds = timestamp - Math.floor(streamStartTime / 1000);
+      const difference = targetSeconds - elapsedSeconds;
+
+      console.log(`Current position: ${elapsedSeconds}s, Target: ${targetSeconds}s, Difference: ${difference}s`);
+    }
+
+    // In a production app with recorded streams, you would:
+    // if (remoteVideoRef.current) {
+    //   remoteVideoRef.current.currentTime = targetTime;
+    // }
   };
 
   useEffect(() => {
@@ -183,106 +208,133 @@ export default function StreamPlayer() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6">
-      <Card className="w-full max-w-6xl bg-slate-800/50 backdrop-blur-xl border-slate-700 shadow-2xl">
-        <div className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent mb-2">
-              Iris
-            </h1>
-            <p className="text-slate-400 text-lg">
-              Agentic Live-Streaming Engine
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent mb-2">
+            Iris
+          </h1>
+          <p className="text-slate-400 text-lg">
+            Agentic Live-Streaming Engine
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-center">
+            {error}
+          </div>
+        )}
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Main Video Area */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="bg-slate-800/50 backdrop-blur-xl border-slate-700 shadow-2xl">
+              <div className="p-6">
+                <div className="grid md:grid-cols-2 gap-4 mb-6">
+                  {/* Local Video (Your Camera) */}
+                  <div className="relative">
+                    <div className="absolute top-3 left-3 z-10 bg-slate-900/80 px-3 py-1 rounded-full text-sm text-slate-300">
+                      Your Camera
+                    </div>
+                    <video
+                      ref={localVideoRef}
+                      autoPlay
+                      muted
+                      playsInline
+                      className="w-full aspect-video bg-slate-950 rounded-lg shadow-lg"
+                    />
+                  </div>
+
+                  {/* Remote Video (Echo from Server) */}
+                  <div className="relative">
+                    <div className="absolute top-3 left-3 z-10 bg-purple-600/80 px-3 py-1 rounded-full text-sm text-white">
+                      Server Echo
+                    </div>
+                    <video
+                      ref={remoteVideoRef}
+                      autoPlay
+                      playsInline
+                      className="w-full aspect-video bg-slate-950 rounded-lg shadow-lg"
+                    />
+                    {!isStreaming && !isConnecting && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-slate-950/50 rounded-lg">
+                        <VideoOff className="w-16 h-16 text-slate-600" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-center gap-4">
+                  {!isStreaming && !isConnecting && (
+                    <Button
+                      onClick={startStream}
+                      size="lg"
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8"
+                    >
+                      <Video className="mr-2 h-5 w-5" />
+                      Start Stream
+                    </Button>
+                  )}
+
+                  {isConnecting && (
+                    <Button
+                      disabled
+                      size="lg"
+                      className="bg-slate-700 text-slate-300 px-8"
+                    >
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Connecting...
+                    </Button>
+                  )}
+
+                  {isStreaming && (
+                    <>
+                      <Button
+                        onClick={stopStream}
+                        size="lg"
+                        variant="destructive"
+                        className="px-8"
+                      >
+                        <VideoOff className="mr-2 h-5 w-5" />
+                        Stop Stream
+                      </Button>
+                      <Button
+                        onClick={() => setShowChat(!showChat)}
+                        size="lg"
+                        variant="outline"
+                        className="px-8 border-slate-600 text-slate-300 hover:bg-slate-700"
+                      >
+                        <MessageSquare className="mr-2 h-5 w-5" />
+                        {showChat ? "Hide" : "Show"} Chat
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            <div className="p-4 bg-slate-800/30 backdrop-blur-xl border border-slate-700 rounded-lg">
+              <h3 className="text-sm font-semibold text-slate-300 mb-2">
+                🎬 Full System Demo
+              </h3>
+              <p className="text-xs text-slate-500">
+                WebRTC streaming + Frame extraction + AI analysis + Semantic search.
+                Start streaming and use the chat to ask questions about the video!
+              </p>
+            </div>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-center">
-              {error}
+          {/* Chat Sidebar */}
+          {showChat && (
+            <div className="lg:col-span-1">
+              <div className="sticky top-6 h-[calc(100vh-3rem)]">
+                <ChatSidebar onSeekToTimestamp={handleSeekToTimestamp} />
+              </div>
             </div>
           )}
-
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {/* Local Video (Your Camera) */}
-            <div className="relative">
-              <div className="absolute top-3 left-3 z-10 bg-slate-900/80 px-3 py-1 rounded-full text-sm text-slate-300">
-                Your Camera
-              </div>
-              <video
-                ref={localVideoRef}
-                autoPlay
-                muted
-                playsInline
-                className="w-full aspect-video bg-slate-950 rounded-lg shadow-lg"
-              />
-            </div>
-
-            {/* Remote Video (Echo from Server) */}
-            <div className="relative">
-              <div className="absolute top-3 left-3 z-10 bg-purple-600/80 px-3 py-1 rounded-full text-sm text-white">
-                Server Echo
-              </div>
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                className="w-full aspect-video bg-slate-950 rounded-lg shadow-lg"
-              />
-              {!isStreaming && !isConnecting && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/50 rounded-lg">
-                  <VideoOff className="w-16 h-16 text-slate-600" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="flex justify-center gap-4">
-            {!isStreaming && !isConnecting && (
-              <Button
-                onClick={startStream}
-                size="lg"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8"
-              >
-                <Video className="mr-2 h-5 w-5" />
-                Start Stream
-              </Button>
-            )}
-
-            {isConnecting && (
-              <Button
-                disabled
-                size="lg"
-                className="bg-slate-700 text-slate-300 px-8"
-              >
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Connecting...
-              </Button>
-            )}
-
-            {isStreaming && (
-              <Button
-                onClick={stopStream}
-                size="lg"
-                variant="destructive"
-                className="px-8"
-              >
-                <VideoOff className="mr-2 h-5 w-5" />
-                Stop Stream
-              </Button>
-            )}
-          </div>
-
-          <div className="mt-8 p-4 bg-slate-900/50 rounded-lg">
-            <h3 className="text-sm font-semibold text-slate-300 mb-2">
-              Phase 1: WebRTC Loopback Test
-            </h3>
-            <p className="text-xs text-slate-500">
-              This demo sends your camera feed to the Go server, which echoes
-              it back. If you see your video in both panels, the WebRTC
-              pipeline is working correctly.
-            </p>
-          </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
