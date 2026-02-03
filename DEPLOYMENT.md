@@ -27,14 +27,14 @@ git push -u origin main
 2. Click **"New Project"**
 3. Select **"Deploy from GitHub repo"**
 4. Choose your `iris-streaming` repository
-5. Railway will detect the `server` folder
-6. Click **"Add variables"** and add:
-   - `PORT` = `8080`
+5. Railway will ask which folder - select **`server-go`**
+6. Railway auto-detects the Dockerfile
 7. Click **"Deploy"**
 8. Wait for deployment (2-3 minutes)
-9. Copy the **public URL** (e.g., `https://iris-go.up.railway.app`)
-10. **Important**: Change `https://` to `wss://` and add `/signal`
-    - Final URL: `wss://iris-go.up.railway.app/signal`
+9. Go to **Settings** → **Networking** → **Generate Domain**
+10. Copy the **public URL** (e.g., `https://server-go-production.up.railway.app`)
+11. **Important**: Change `https://` to `wss://` and add `/signal`
+    - Final URL: `wss://server-go-production.up.railway.app/signal`
 
 ## Step 3: Deploy Python AI Server to Railway
 
